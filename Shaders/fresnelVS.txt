@@ -1,0 +1,66 @@
+#version 400
+
+layout(location = 0) in vec3 vertex_position;
+layout(location = 1) in vec3 vertex_normal;
+layout(location = 2) in vec2 vertex_texture;
+
+
+
+uniform mat4 view;
+uniform mat4 proj;
+uniform mat4 model;
+
+uniform bool DrawSkyBox;
+
+uniform vec3 camera_position;
+
+uniform vec3 eta;
+
+
+float fresnel_power = 5.0;
+
+out vec3 reflect_dir;
+out vec3 refract_dir;
+out float ratio;
+out vec3 refract_r;
+out vec3 refract_g;
+out vec3 refract_b;
+
+
+void main()
+{
+	if(DrawSkyBox)
+		reflect_dir = vertex_position;
+	else
+	{
+		vec3 worldCamera = camera_position;
+
+		float F = ((1.0 - eta) * (1.0 - eta)) / ((1.0 + eta) * (1.0 + eta));
+
+
+
+		vec3 worldPos = vec3(model * vec4(vertex_position, 1.0f));
+		
+		vec3 worldNorm = vec3(model * vec4(vertex_normal, 0.0f));
+
+		vec3 worldView = normalize(worldCamera - worldPos);
+
+		reflect_dir = reflect(-worldView, worldNorm);
+//		refract_dir = refract(-worldView, worldNorm, eta);
+
+		refract_r = refract(-worldView, worldNorm, eta.r);
+		refract_g = refract(-worldView, worldNorm, eta.g);
+		refract_b = refract(-worldView, worldNorm, eta.b);
+		
+		
+		ratio = F + (1.0 - F) * pow((1.0 - dot(worldView, worldNorm)), fresnel_power);
+	}
+
+
+	// Convert position to clip coordinates and pass along
+	gl_Position = proj * view * model * vec4(vertex_position, 1.0);
+
+}
+
+
+  

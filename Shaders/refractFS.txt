@@ -1,0 +1,30 @@
+#version 400
+
+in vec3 reflect_dir; // The direction of the reflected ray
+in vec3 refract_dir;
+
+uniform samplerCube CubeMapTex; // The cube map
+
+uniform bool DrawSkyBox; // Are we drawing the sky box?
+
+uniform float reflect_factor; // Amount of reflection
+
+uniform vec3 kd; // Color of the object's "Tint"
+
+layout( location = 0 ) out vec4 FragColor;
+
+void main()
+{
+
+ // Access the cube map texture
+ vec4 reflect_col = texture(CubeMapTex, reflect_dir);
+
+ if( DrawSkyBox )
+	FragColor = reflect_col;
+ else
+ {
+	vec4 MaterialColor = vec4(kd, 1.0f);
+	vec4 refract_col = texture(CubeMapTex, refract_dir);
+	FragColor = mix(refract_col, reflect_col, reflect_factor);
+ }
+}
